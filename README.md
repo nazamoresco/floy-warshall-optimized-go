@@ -3,7 +3,8 @@
 ### How to run
 1. Install go
 2. Go to root path of this proyect
-3. Run `go secuencial/main.go` or `go concurrent/main.go`
+3. Run `go build secuencial/main.go` or `go build --race concurrent/main.go`
+4. Execute `./main`
 
 
 #### Reconstruct path
