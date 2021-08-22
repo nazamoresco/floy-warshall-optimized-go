@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"time"
 )
 
 const MatrixSize = 3
@@ -37,7 +38,7 @@ func main() {
 	//
 	// Initialize result matrixes ~>
 	//
-
+	start := time.Now()
 	for origin_vertex := 0; origin_vertex < MatrixSize; origin_vertex++ {
 		for target_vertex := 0; target_vertex < MatrixSize; target_vertex++ {
 			// Each vertex has a distance of zero to itself
@@ -101,6 +102,10 @@ func main() {
 	fmt.Println()
 	fmt.Println("Next vertex matrix")
 	printMatrix(next_vertex_matrix)
+
+	fmt.Println()
+	fmt.Println("Time:")
+	fmt.Println(time.Since(start))
 }
 
 
