@@ -37,40 +37,34 @@ func main() {
 	}
 
 	//
-	// Initialize result matrixes ~>
+	// Initialize result matrixes and calculate shortest path  ~>
 	//
+
 	start := time.Now()
-	for origin_vertex := 0; origin_vertex < MatrixSize; origin_vertex++ {
-		for target_vertex := 0; target_vertex < MatrixSize; target_vertex++ {
-			// Each vertex has a distance of zero to itself
-			if target_vertex == origin_vertex {
-				path_weight_matrix[origin_vertex][target_vertex] = 0
-				next_vertex_matrix[origin_vertex][target_vertex] = target_vertex
-				continue
-			}
-
-			// If there is no path the path weight is positive Infinity
-			if graph_matrix[origin_vertex][target_vertex] == -1 {
-				path_weight_matrix[origin_vertex][target_vertex] = Infinity
-				next_vertex_matrix[origin_vertex][target_vertex] = -1
-				continue
-			}
-
-			// Default minimum path between the two vertices is the direct path
-			path_weight_matrix[origin_vertex][target_vertex] = graph_matrix[origin_vertex][target_vertex]
-			next_vertex_matrix[origin_vertex][target_vertex] = target_vertex
-		}
-	}
-
-
-	//
-	// Calculate shortest path ~>
-	//
-
-	// 0 stops can be ignored as it is already initialized
-	for stop_vertex := 1; stop_vertex < MatrixSize; stop_vertex++ {
+	for stop_vertex := 0; stop_vertex < MatrixSize; stop_vertex++ {
 		for origin_vertex := 0; origin_vertex < MatrixSize; origin_vertex++ {
 			for target_vertex := 0; target_vertex < MatrixSize; target_vertex++ {
+				if(stop_vertex == 0) {
+					// Each vertex has a distance of zero to itself
+					if target_vertex == origin_vertex {
+						path_weight_matrix[origin_vertex][target_vertex] = 0
+						next_vertex_matrix[origin_vertex][target_vertex] = target_vertex
+						continue
+					}
+
+					// If there is no path the path weight is positive Infinity
+					if graph_matrix[origin_vertex][target_vertex] == -1 {
+						path_weight_matrix[origin_vertex][target_vertex] = Infinity
+						next_vertex_matrix[origin_vertex][target_vertex] = -1
+						continue
+					}
+
+					// Default minimum path between the two vertices is the direct path
+					path_weight_matrix[origin_vertex][target_vertex] = graph_matrix[origin_vertex][target_vertex]
+					next_vertex_matrix[origin_vertex][target_vertex] = target_vertex
+					continue
+				}
+
 				// if there is no path to the stop or from the stop go to next iteration
 				path_weight_from_stop := path_weight_matrix[stop_vertex][target_vertex]
 				path_weight_to_stop := path_weight_matrix[origin_vertex][stop_vertex]
@@ -94,17 +88,17 @@ func main() {
 	//
 	total_time := time.Since(start)
 
-	fmt.Println()
-	fmt.Println("Input graph")
-	printMatrix(graph_matrix)
+	// fmt.Println()
+	// fmt.Println("Input graph")
+	// printMatrix(graph_matrix)
 
-	fmt.Println()
-	fmt.Println("Path weight matrix")
-	printMatrix(path_weight_matrix)
+	// fmt.Println()
+	// fmt.Println("Path weight matrix")
+	// printMatrix(path_weight_matrix)
 
-	fmt.Println()
-	fmt.Println("Next vertex matrix")
-	printMatrix(next_vertex_matrix)
+	// fmt.Println()
+	// fmt.Println("Next vertex matrix")
+	// printMatrix(next_vertex_matrix)
 
 	fmt.Println()
 	fmt.Println("Time:")
