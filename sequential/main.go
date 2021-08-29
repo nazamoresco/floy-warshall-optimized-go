@@ -91,6 +91,8 @@ func main() {
 	//
 	// Return values  ~>
 	//
+	total_time := time.Since(start)
+
 	fmt.Println()
 	fmt.Println("Input graph")
 	printMatrix(graph_matrix)
@@ -105,7 +107,7 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("Time:")
-	fmt.Println(time.Since(start))
+	fmt.Println(total_time)
 }
 
 
