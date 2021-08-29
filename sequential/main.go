@@ -13,7 +13,7 @@ const Infinity = math.MaxInt
 
 func main() {
 	//
-	// Initialization of matrixes ~>
+	// Initialization of matrixes and variables ~>
 	//
 
 	// Matrix with the minimum distances between each pair of vertices
@@ -23,10 +23,35 @@ func main() {
 	// Adjencency matrix representing the graph
 	graph_matrix := make([]int, MatrixSize * MatrixSize)
 
+	// Vars
+	var edges float64
+	var row_vertex int
+	var row_index_cached int
+	var column_vertex int
+	var index_cached int
+	var stop_vertex int
+	var origin_vertex int
+	var target_vertex int
+	var from_stop_index_cached int
+	var origin_index_cached int
+	var to_stop_index_cached int
+	var path_weight_from_stop int
+	var path_weight_to_stop int
+	var start time.Time
+	var total_time time.Duration
+	var previous_path int
+	var current_path int
+
 	// Initialize graph
+	edges = float64(MatrixSize * (MatrixSize - 1)) * 0.7 // 70% Density
+	for row_vertex = 0; row_vertex < MatrixSize; row_vertex++ {
+		row_index_cached = row_vertex * MatrixSize
+		for column_vertex = 0; column_vertex < MatrixSize; column_vertex ++ {
+			index_cached = row_index_cached + column_vertex
 			if(edges < 1) {
+				graph_matrix[index_cached] = -1
 			} else {
-				graph_matrix[cached_index] = rand.Intn(100)
+				graph_matrix[index_cached] = rand.Intn(100)
 				edges = edges - 1
 			}
 		}
@@ -36,14 +61,14 @@ func main() {
 	// Initialize result matrixes and calculate shortest path  ~>
 	//
 
-	start := time.Now()
-	for stop_vertex := 0; stop_vertex < MatrixSize; stop_vertex++ {
-		from_stop_index_cached := stop_vertex * MatrixSize
-		for origin_vertex := 0; origin_vertex < MatrixSize; origin_vertex++ {
-			origin_index_cached := origin_vertex * MatrixSize
-			for target_vertex := 0; target_vertex < MatrixSize; target_vertex++ {
-				index_cached := origin_index_cached + target_vertex
-				to_stop_index_cached := origin_index_cached + stop_vertex
+	start = time.Now()
+	for stop_vertex = 0; stop_vertex < MatrixSize; stop_vertex++ {
+		from_stop_index_cached = stop_vertex * MatrixSize
+		for origin_vertex = 0; origin_vertex < MatrixSize; origin_vertex++ {
+			origin_index_cached = origin_vertex * MatrixSize
+			for target_vertex = 0; target_vertex < MatrixSize; target_vertex++ {
+				index_cached = origin_index_cached + target_vertex
+				to_stop_index_cached = origin_index_cached + stop_vertex
 				if(stop_vertex == 0) {
 					// Each vertex has a distance of zero to itself
 					if target_vertex == origin_vertex {
@@ -66,14 +91,14 @@ func main() {
 				}
 
 				// if there is no path to the stop or from the stop go to next iteration
-				path_weight_from_stop := path_weight_matrix[from_stop_index_cached + target_vertex]
-				path_weight_to_stop := path_weight_matrix[to_stop_index_cached]
+				path_weight_from_stop = path_weight_matrix[from_stop_index_cached + target_vertex]
+				path_weight_to_stop = path_weight_matrix[to_stop_index_cached]
 				if path_weight_to_stop == Infinity || path_weight_from_stop == Infinity {
 					continue
 				}
 
-				previous_path := path_weight_matrix[index_cached]
-				current_path := path_weight_to_stop + path_weight_from_stop
+				previous_path = path_weight_matrix[index_cached]
+				current_path = path_weight_to_stop + path_weight_from_stop
 				if current_path < previous_path {
 					path_weight_matrix[index_cached] = current_path
 					next_vertex_matrix[index_cached] = next_vertex_matrix[to_stop_index_cached]
@@ -86,7 +111,7 @@ func main() {
 	//
 	// Return values  ~>
 	//
-	total_time := time.Since(start)
+	total_time = time.Since(start)
 
 	// fmt.Println()
 	// fmt.Println("Input graph")
