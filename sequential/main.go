@@ -24,13 +24,14 @@ func main() {
 	var graph_matrix [MatrixSize][MatrixSize]int
 
 	// Initialize graph
+	edges := float64(MatrixSize * (MatrixSize - 1)) * 0.7 // 70% Density
 	for row_vertex := 0; row_vertex < MatrixSize; row_vertex++ {
 		for column_vertex := 0; column_vertex < MatrixSize; column_vertex ++ {
-			no_path := rand.Intn(2)
-			if(no_path == 1) {
+			if(edges <= 0) {
 				graph_matrix[row_vertex][column_vertex] = -1
 			} else {
 				graph_matrix[row_vertex][column_vertex] = rand.Intn(100)
+				edges = edges - 1
 			}
 		}
 	}
