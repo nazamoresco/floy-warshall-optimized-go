@@ -115,7 +115,7 @@ func main() {
 // printMatrix: Format and prints a given matrix
 // Assumes first index is row, second index is column
 // Prepared for 4 digit numbers, more digits would break this
-func printMatrix(matrix [MatrixSize * MatrixSize]int) {
+func printMatrix(matrix []int) {
 	// Compact version
 	if(MatrixSize > 25) {
 		fmt.Println("[ ")
