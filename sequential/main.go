@@ -17,11 +17,11 @@ func main() {
 	//
 
 	// Matrix with the minimum distances between each pair of vertices
-	var path_weight_matrix [MatrixSize * MatrixSize]int
-	var next_vertex_matrix [MatrixSize * MatrixSize]int
+	path_weight_matrix := make([]int, MatrixSize * MatrixSize)
+	next_vertex_matrix := make([]int, MatrixSize * MatrixSize)
 
 	// Adjencency matrix representing the graph
-	var graph_matrix [MatrixSize * MatrixSize]int
+	graph_matrix := make([]int, MatrixSize * MatrixSize)
 
 	// Initialize graph
 	edges := float64(MatrixSize * (MatrixSize - 1)) * 0.7 // 70% Density

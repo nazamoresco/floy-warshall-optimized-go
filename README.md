@@ -29,12 +29,6 @@ for(current_step != end_vertex) {
 return path
 ```
 
-
-
-
 ## TODO:
 
-* Test performance using slices for the matrixes
-  * https://stackoverflow.com/questions/39804861/what-is-a-concise-way-to-create-a-2d-slice-in-go
-* Optimize sequential version
 * Implement concurrent version
