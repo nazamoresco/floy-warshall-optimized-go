@@ -24,13 +24,7 @@ func main() {
 	graph_matrix := make([]int, MatrixSize * MatrixSize)
 
 	// Initialize graph
-	edges := float64(MatrixSize * (MatrixSize - 1)) * 0.7 // 70% Density
-	for row_vertex := 0; row_vertex < MatrixSize; row_vertex++ {
-		row_index_cached := row_vertex * MatrixSize
-		for column_vertex := 0; column_vertex < MatrixSize; column_vertex ++ {
-			cached_index := row_index_cached + column_vertex
-			if(edges <= 0) {
-				graph_matrix[cached_index] = -1
+			if(edges < 1) {
 			} else {
 				graph_matrix[cached_index] = rand.Intn(100)
 				edges = edges - 1
