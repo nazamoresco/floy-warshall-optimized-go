@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const MatrixSize = 3
+const MatrixSize = 5
 const Infinity = math.MaxInt
 
 func main() {
@@ -17,6 +17,7 @@ func main() {
 	//
 
 	// Matrix with the minimum distances between each pair of vertices
+	// Origin are rows, targes are columns
 	path_weight_matrix := make([]int, MatrixSize * MatrixSize)
 	next_vertex_matrix := make([]int, MatrixSize * MatrixSize)
 
@@ -48,7 +49,9 @@ func main() {
 		row_index_cached = row_vertex * MatrixSize
 		for column_vertex = 0; column_vertex < MatrixSize; column_vertex ++ {
 			index_cached = row_index_cached + column_vertex
-			if(edges < 1) {
+			if(row_vertex == column_vertex) {
+				graph_matrix[index_cached] = 0
+			} else if(edges < 1) {
 				graph_matrix[index_cached] = -1
 			} else {
 				graph_matrix[index_cached] = rand.Intn(100)
@@ -56,6 +59,18 @@ func main() {
 			}
 		}
 	}
+
+	// Initialize path and next
+	for i := range path_weight_matrix {
+		if(graph_matrix[i] == -1) {
+			path_weight_matrix[i] = Infinity
+			next_vertex_matrix[i] = -1
+		} else {
+			path_weight_matrix[i] = graph_matrix[i]
+			next_vertex_matrix[i] = i % MatrixSize
+		}
+	}
+
 
 	//
 	// Initialize result matrixes and calculate shortest path  ~>
@@ -69,26 +84,6 @@ func main() {
 			for target_vertex = 0; target_vertex < MatrixSize; target_vertex++ {
 				index_cached = origin_index_cached + target_vertex
 				to_stop_index_cached = origin_index_cached + stop_vertex
-				if(stop_vertex == 0) {
-					// Each vertex has a distance of zero to itself
-					if target_vertex == origin_vertex {
-						path_weight_matrix[index_cached] = 0
-						next_vertex_matrix[index_cached] = target_vertex
-						continue
-					}
-
-					// If there is no path the path weight is positive Infinity
-					if graph_matrix[index_cached] == -1 {
-						path_weight_matrix[index_cached] = Infinity
-						next_vertex_matrix[index_cached] = -1
-						continue
-					}
-
-					// Default minimum path between the two vertices is the direct path
-					path_weight_matrix[index_cached] = graph_matrix[index_cached]
-					next_vertex_matrix[index_cached] = target_vertex
-					continue
-				}
 
 				// if there is no path to the stop or from the stop go to next iteration
 				path_weight_from_stop = path_weight_matrix[from_stop_index_cached + target_vertex]
@@ -113,17 +108,17 @@ func main() {
 	//
 	total_time = time.Since(start)
 
-	// fmt.Println()
-	// fmt.Println("Input graph")
-	// printMatrix(graph_matrix)
+	fmt.Println()
+	fmt.Println("Input graph")
+	printMatrix(graph_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Path weight matrix")
-	// printMatrix(path_weight_matrix)
+	fmt.Println()
+	fmt.Println("Path weight matrix")
+	printMatrix(path_weight_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Next vertex matrix")
-	// printMatrix(next_vertex_matrix)
+	fmt.Println()
+	fmt.Println("Next vertex matrix")
+	printMatrix(next_vertex_matrix)
 
 	fmt.Println()
 	fmt.Println("Time:")
