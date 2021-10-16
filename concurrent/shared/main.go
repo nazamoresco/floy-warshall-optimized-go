@@ -5,43 +5,93 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"sync"
 	"time"
 )
 
-const MatrixSize = 16384
-const Infinity = math.MaxInt64
+const (
+	MatrixSize = 4096
+  Threads = 4
+  Infinity = math.MaxInt
+)
+
+var (
+	path_weight_matrix []int
+	next_vertex_matrix []int
+
+	// Vars
+	edges float64
+	row_vertex int
+	row_index_cached int
+	column_vertex int
+	index_cached int
+	stop_vertex int
+	origin_vertex int
+	target_vertex int
+	from_stop_index_cached int
+	origin_index_cached int
+	to_stop_index_cached int
+	path_weight_from_stop int
+	path_weight_to_stop int
+	start time.Time
+	total_time time.Duration
+	previous_path int
+	current_path int
+	rows_per_thread int
+	threads_group sync.WaitGroup
+)
+
+
+
+func process_rows(thread_index int, threads_group *sync.WaitGroup) {
+	var (
+		index_cached int
+		origin_vertex int
+		target_vertex int
+		origin_index_cached int
+		to_stop_index_cached int
+		path_weight_from_stop int
+		path_weight_to_stop int
+		previous_path int
+		current_path int
+	)
+
+	for origin_vertex = thread_index * rows_per_thread; origin_vertex < (thread_index + 1) * rows_per_thread; origin_vertex++ {
+		origin_index_cached = origin_vertex * MatrixSize
+		for target_vertex = 0; target_vertex < MatrixSize; target_vertex++ {
+			index_cached = origin_index_cached + target_vertex
+			to_stop_index_cached = origin_index_cached + stop_vertex
+
+			// if there is no path to the stop or from the stop go to next iteration
+			path_weight_from_stop = path_weight_matrix[from_stop_index_cached + target_vertex]
+			path_weight_to_stop = path_weight_matrix[to_stop_index_cached]
+			if path_weight_to_stop == Infinity || path_weight_from_stop == Infinity {
+				continue
+			}
+
+			previous_path = path_weight_matrix[index_cached]
+			current_path = path_weight_to_stop + path_weight_from_stop
+			if current_path < previous_path {
+				path_weight_matrix[index_cached] = current_path
+				next_vertex_matrix[index_cached] = next_vertex_matrix[to_stop_index_cached]
+			}
+		}
+	}
+	threads_group.Done()
+}
+
 
 func main() {
 	//
 	// Initialization of matrixes and variables ~>
 	//
-
 	// Matrix with the minimum distances between each pair of vertices
 	// Origin are rows, targes are columns
-	path_weight_matrix := make([]int, MatrixSize * MatrixSize)
-	next_vertex_matrix := make([]int, MatrixSize * MatrixSize)
+	path_weight_matrix = make([]int, MatrixSize * MatrixSize)
+	next_vertex_matrix = make([]int, MatrixSize * MatrixSize)
 
 	// Adjencency matrix representing the graph
 	graph_matrix := make([]int, MatrixSize * MatrixSize)
-
-	// Vars
-	var edges float64
-	var row_vertex int
-	var row_index_cached int
-	var column_vertex int
-	var index_cached int
-	var stop_vertex int
-	var origin_vertex int
-	var target_vertex int
-	var from_stop_index_cached int
-	var origin_index_cached int
-	var to_stop_index_cached int
-	var path_weight_from_stop int
-	var path_weight_to_stop int
-	var start time.Time
-	var total_time time.Duration
-	var previous_path int
-	var current_path int
 
 	// Initialize graph
 	edges = float64(MatrixSize * (MatrixSize - 1)) * 0.7 // 70% Density
@@ -76,35 +126,23 @@ func main() {
 	// Initialize result matrixes and calculate shortest path  ~>
 	//
 
+	// IMPORTANT AND DEFINITION OF THREADS
 	start = time.Now()
+	rows_per_thread = MatrixSize/Threads
 	for stop_vertex = 0; stop_vertex < MatrixSize; stop_vertex++ {
 		from_stop_index_cached = stop_vertex * MatrixSize
-		for origin_vertex = 0; origin_vertex < MatrixSize; origin_vertex++ {
-			origin_index_cached = origin_vertex * MatrixSize
-			for target_vertex = 0; target_vertex < MatrixSize; target_vertex++ {
-				index_cached = origin_index_cached + target_vertex
-				to_stop_index_cached = origin_index_cached + stop_vertex
 
-				// if there is no path to the stop or from the stop go to next iteration
-				path_weight_from_stop = path_weight_matrix[from_stop_index_cached + target_vertex]
-				path_weight_to_stop = path_weight_matrix[to_stop_index_cached]
-				if path_weight_to_stop == Infinity || path_weight_from_stop == Infinity {
-					continue
-				}
-
-				previous_path = path_weight_matrix[index_cached]
-				current_path = path_weight_to_stop + path_weight_from_stop
-				if current_path < previous_path {
-					path_weight_matrix[index_cached] = current_path
-					next_vertex_matrix[index_cached] = next_vertex_matrix[to_stop_index_cached]
-				}
-			}
+		threads_group.Add(Threads)
+		for thread_index := 1; thread_index < Threads; thread_index++ {
+			go process_rows(thread_index, &threads_group)
 		}
+
+		process_rows(0, &threads_group)
+		threads_group.Wait()
 	}
 
-
 	//
-	// Return values  ~>
+	// Return values  ~>D
 	//
 	total_time = time.Since(start)
 

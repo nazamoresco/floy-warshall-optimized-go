@@ -32,3 +32,13 @@ return path
 ## TODO:
 
 * Implement concurrent version
+* Investigar como paralelizar este problema
+
+# Times:
+
+* Sequential V0
+  * Time:
+    * (N = 4096) 6m51.982729876s
+    * (N = 8192)
+    * (N = 16384)
+    * (N = 32768)
