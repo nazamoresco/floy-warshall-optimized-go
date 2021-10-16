@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MatrixSize = 4096
+	MatrixSize = 4
   Threads = 4
   Infinity = math.MaxInt
 )
@@ -146,17 +146,17 @@ func main() {
 	//
 	total_time = time.Since(start)
 
-	// fmt.Println()
-	// fmt.Println("Input graph")
-	// printMatrix(graph_matrix)
+	fmt.Println()
+	fmt.Println("Input graph")
+	printMatrix(graph_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Path weight matrix")
-	// printMatrix(path_weight_matrix)
+	fmt.Println()
+	fmt.Println("Path weight matrix")
+	printMatrix(path_weight_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Next vertex matrix")
-	// printMatrix(next_vertex_matrix)
+	fmt.Println()
+	fmt.Println("Next vertex matrix")
+	printMatrix(next_vertex_matrix)
 
 	fmt.Println()
 	fmt.Println("Time:")

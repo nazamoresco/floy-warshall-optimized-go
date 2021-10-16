@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MatrixSize = 16384
+	MatrixSize = 4
   Threads = 2
   Infinity = math.MaxInt
 	rows_per_thread = MatrixSize/Threads
@@ -56,7 +56,6 @@ func process_rows(
 					continue
 				}
 
-				// fmt.Println(index_cached, origin_weight_matrix, stop_weight_matrix)
 				previous_path = origin_weight_matrix[index_cached]
 				current_path = path_weight_to_stop + path_weight_from_stop
 
@@ -92,6 +91,9 @@ var (
 	to_stop_index_cached int
 	path_weight_from_stop int
 	path_weight_to_stop int
+	slice_start int
+	slice_end int
+	thread_index int
 	start time.Time
 	total_time time.Duration
 	previous_path int
@@ -165,8 +167,8 @@ func main() {
 	// IMPORTANT AND DEFINITION OF THREADS
 	start = time.Now()
 	for thread_index := 1; thread_index < Threads; thread_index++ {
-		slice_start := (thread_index * rows_per_thread) * MatrixSize
-		slice_end := slice_start + MatrixSize * rows_per_thread
+		slice_start = (thread_index * rows_per_thread) * MatrixSize
+		slice_end = slice_start + MatrixSize * rows_per_thread
 
 		go process_rows(
 			rows_per_thread,
@@ -176,7 +178,6 @@ func main() {
 			thread_id_channel,
 			path_rows_channels[thread_index],
 			weight_rows_channels[thread_index],
-			stop_vertex_channel,
 			stop_vertex_weight_matrix_channel,
 		)
 	}
@@ -185,7 +186,7 @@ func main() {
 	for stop_vertex = 0; stop_vertex < MatrixSize; stop_vertex++ {
 		from_stop_index_cached = stop_vertex * MatrixSize
 
-		for thread_index := 1; thread_index < Threads; thread_index++ {
+		for thread_index = 1; thread_index < Threads; thread_index++ {
 			stop_vertex_weight_matrix_channel <- path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
 		}
 
@@ -209,7 +210,6 @@ func main() {
 					continue
 				}
 
-				// fmt.Println(index_cached, origin_weight_matrix, stop_weight_matrix)
 				previous_path = origin_weight_matrix[index_cached]
 				current_path = path_weight_to_stop + path_weight_from_stop
 
@@ -233,8 +233,8 @@ func main() {
 			end_comm = time.Since(start_comm)
 			communication_seconds += end_comm.Seconds()
 
-			slice_start := (thread_id * rows_per_thread) * MatrixSize
-			slice_end := slice_start + MatrixSize * rows_per_thread
+			slice_start = (thread_id * rows_per_thread) * MatrixSize
+			slice_end = slice_start + MatrixSize * rows_per_thread
 
 			copy(next_vertex_matrix[slice_start:slice_end], path_rows)
 			copy(path_weight_matrix[slice_start:slice_end], weight_rows)
@@ -246,17 +246,17 @@ func main() {
 	//
 	total_time = time.Since(start)
 
-	// fmt.Println()
-	// fmt.Println("Input graph")
-	// printMatrix(graph_matrix)
+	fmt.Println()
+	fmt.Println("Input graph")
+	printMatrix(graph_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Path weight matrix")
-	// printMatrix(path_weight_matrix)
+	fmt.Println()
+	fmt.Println("Path weight matrix")
+	printMatrix(path_weight_matrix)
 
-	// fmt.Println()
-	// fmt.Println("Next vertex matrix")
-	// printMatrix(next_vertex_matrix)
+	fmt.Println()
+	fmt.Println("Next vertex matrix")
+	printMatrix(next_vertex_matrix)
 
 	fmt.Println()
 	fmt.Println("Time:")
