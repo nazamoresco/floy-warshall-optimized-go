@@ -42,3 +42,13 @@ return path
     * (N = 8192)
     * (N = 16384)
     * (N = 32768)
+
+
+
+#!/bin/bash
+#SBATCH -N 2
+#SBATCH --exclusive
+#SBATCH --tasks-per-node=1
+#SBATCH -o dirChannel/output.txt
+#SBATCH -e dirChannel/errores.txt
+./channel

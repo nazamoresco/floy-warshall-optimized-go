@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	MatrixSize = 4
-  Threads = 4
-  Infinity = math.MaxInt
+	MatrixSize = 4096
+  Threads = 2
+  Infinity = math.MaxInt64
 )
 
 var (

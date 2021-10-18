@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const MatrixSize = 4
+const MatrixSize = 8192
 const Infinity = math.MaxInt64
 
 func main() {
@@ -108,17 +108,17 @@ func main() {
 	//
 	total_time = time.Since(start)
 
-	fmt.Println()
-	fmt.Println("Input graph")
-	printMatrix(graph_matrix)
+	// fmt.Println()
+	// fmt.Println("Input graph")
+	// printMatrix(graph_matrix)
 
-	fmt.Println()
-	fmt.Println("Path weight matrix")
-	printMatrix(path_weight_matrix)
+	// fmt.Println()
+	// fmt.Println("Path weight matrix")
+	// printMatrix(path_weight_matrix)
 
-	fmt.Println()
-	fmt.Println("Next vertex matrix")
-	printMatrix(next_vertex_matrix)
+	// fmt.Println()
+	// fmt.Println("Next vertex matrix")
+	// printMatrix(next_vertex_matrix)
 
 	fmt.Println()
 	fmt.Println("Time:")
