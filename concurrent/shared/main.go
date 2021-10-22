@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MatrixSize = 4096
+	MatrixSize = 4
   Threads = 2
   Infinity = math.MaxInt64
 )

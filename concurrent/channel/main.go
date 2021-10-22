@@ -6,25 +6,26 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"runtime"
 )
 
 const (
-	MatrixSize = 2048
+	MatrixSize = 4096
   Threads = 2
-  Infinity = math.MaxInt
+  Infinity = math.MaxInt64
 	rows_per_thread = MatrixSize/Threads
 	MainThreadIndex = 0
 )
 
 func process_rows(
 	rows_per_thread int,
-	thread_index int,
+	thread_id int,
 	origin_weight_matrix []int,
 	origin_next_matrix []int,
 	thread_id_channel chan int,
 	path_rows_channel chan []int,
 	weight_rows_channel chan []int,
-	stop_vertex_weight_matrix_channel chan []int,
+	stop_vertex_weight_matrix_channels []chan []int,
 	) {
 	var (
 		index_cached int
@@ -41,7 +42,15 @@ func process_rows(
 	)
 
 	for stop_vertex = 0; stop_vertex < MatrixSize; stop_vertex++ {
-		stop_weight_matrix = <- stop_vertex_weight_matrix_channel
+		if(stop_vertex >= (thread_id * rows_per_thread) && stop_vertex <  (thread_id * rows_per_thread) + rows_per_thread ) {
+			from_stop_index_cached = stop_vertex * MatrixSize
+			stop_weight_matrix = path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
+			for thread_index := 1; thread_index < Threads; thread_index++ {
+				stop_vertex_weight_matrix_channels[stop_vertex] <- stop_weight_matrix
+			}
+		} else {
+			stop_weight_matrix = <- stop_vertex_weight_matrix_channels[stop_vertex]
+		}
 
 		for origin_vertex = 0; origin_vertex < rows_per_thread; origin_vertex++ {
 			origin_index_cached = origin_vertex * MatrixSize
@@ -65,17 +74,18 @@ func process_rows(
 				}
 			}
 		}
-
-		// solo un hilo
-		thread_id_channel <- thread_index
-		weight_rows_channel <- origin_weight_matrix
-		path_rows_channel <- origin_next_matrix
 	}
+
+	// solo un hilo
+	thread_id_channel <- thread_id
+	weight_rows_channel <- origin_weight_matrix
+	path_rows_channel <- origin_next_matrix
 }
 
 var (
 	path_weight_matrix []int
 	next_vertex_matrix []int
+	stop_weight_matrix []int 
 
 	// Vars
 	edges float64
@@ -105,19 +115,24 @@ var (
 
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	communication_seconds = 0
 
 	// Channels
 	// Public channels
 	thread_id_channel := make(chan int, Threads)
-	stop_vertex_weight_matrix_channel := make(chan []int, Threads)
 
 	// Private channels
 	weight_rows_channels := make([]chan []int, Threads)
 	path_rows_channels := make([]chan []int, Threads)
+	stop_vertex_weight_matrix_channels := make([]chan []int, MatrixSize)
 	for i := range weight_rows_channels {
 		weight_rows_channels[i] = make(chan []int, 1)
 		path_rows_channels[i] = make(chan []int, 1)
+	}
+
+	for i := range stop_vertex_weight_matrix_channels {
+		stop_vertex_weight_matrix_channels[i] = make(chan []int, Threads)
 	}
 
 	//
@@ -178,24 +193,30 @@ func main() {
 			thread_id_channel,
 			path_rows_channels[thread_index],
 			weight_rows_channels[thread_index],
-			stop_vertex_weight_matrix_channel,
+			stop_vertex_weight_matrix_channels,
 		)
 	}
 
+	// Calculations main thread
+	slice_start := (MainThreadIndex * rows_per_thread) * MatrixSize
+	slice_end := slice_start + MatrixSize * rows_per_thread
 
+	origin_weight_matrix := path_weight_matrix[slice_start:slice_end]
+	origin_next_matrix := next_vertex_matrix[slice_start:slice_end]
 	for stop_vertex = 0; stop_vertex < MatrixSize; stop_vertex++ {
-		from_stop_index_cached = stop_vertex * MatrixSize
-
-		for thread_index = 1; thread_index < Threads; thread_index++ {
-			stop_vertex_weight_matrix_channel <- path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
+		start_comm = time.Now()
+		if(stop_vertex >= MainThreadIndex && stop_vertex < rows_per_thread ) {
+			from_stop_index_cached = stop_vertex * MatrixSize
+			stop_weight_matrix = path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
+			for thread_index = 1; thread_index < Threads; thread_index++ {
+				stop_vertex_weight_matrix_channels[stop_vertex] <- stop_weight_matrix
+			}
+		} else {
+			stop_weight_matrix = <- stop_vertex_weight_matrix_channels[stop_vertex]
+			stop_weight_matrix = path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
 		}
-
-		// Calculations main thread
-		slice_start := (MainThreadIndex * rows_per_thread) * MatrixSize
-		slice_end := slice_start + MatrixSize * rows_per_thread
-		stop_weight_matrix := path_weight_matrix[from_stop_index_cached:from_stop_index_cached + MatrixSize]
-		origin_weight_matrix := path_weight_matrix[slice_start:slice_end]
-		origin_next_matrix := next_vertex_matrix[slice_start:slice_end]
+		end_comm = time.Since(start_comm)
+		communication_seconds += end_comm.Seconds()
 
 		for origin_vertex = 0; origin_vertex < rows_per_thread; origin_vertex++ {
 			origin_index_cached = origin_vertex * MatrixSize
@@ -219,27 +240,27 @@ func main() {
 				}
 			}
 		}
-
-		copy(next_vertex_matrix[slice_start:slice_end], origin_next_matrix)
-		copy(path_weight_matrix[slice_start:slice_end], origin_weight_matrix)
-		// MAIN THREAD
-
-		// Fetch new calculations
-		for i := 1; i < Threads; i++ {
-			start_comm = time.Now()
-			thread_id := <- thread_id_channel
-			weight_rows := <- weight_rows_channels[thread_id]
-			path_rows := <- path_rows_channels[thread_id]
-			end_comm = time.Since(start_comm)
-			communication_seconds += end_comm.Seconds()
-
-			slice_start = (thread_id * rows_per_thread) * MatrixSize
-			slice_end = slice_start + MatrixSize * rows_per_thread
-
-			copy(next_vertex_matrix[slice_start:slice_end], path_rows)
-			copy(path_weight_matrix[slice_start:slice_end], weight_rows)
-		}
 	}
+	// copy(next_vertex_matrix[slice_start:slice_end], origin_next_matrix)
+	// copy(path_weight_matrix[slice_start:slice_end], origin_weight_matrix)
+
+
+	// Fetch new calculations
+	start_comm = time.Now()
+
+	for i := 1; i < Threads; i++ {
+		thread_id := <- thread_id_channel
+		weight_rows := <- weight_rows_channels[thread_id]
+		path_rows := <- path_rows_channels[thread_id]
+
+		slice_start = (thread_id * rows_per_thread) * MatrixSize
+		slice_end = slice_start + MatrixSize * rows_per_thread
+
+		copy(next_vertex_matrix[slice_start:slice_end], path_rows)
+		copy(path_weight_matrix[slice_start:slice_end], weight_rows)
+	}
+	end_comm = time.Since(start_comm)
+	communication_seconds += end_comm.Seconds()
 
 	//
 	// Return values  ~>D
@@ -258,12 +279,12 @@ func main() {
 	// fmt.Println("Next vertex matrix")
 	// printMatrix(next_vertex_matrix)
 
-	fmt.Println()
-	fmt.Println("Time:")
-	fmt.Println(total_time.Seconds())
-	fmt.Println()
-	fmt.Println("Communication Time:")
-	fmt.Println(communication_seconds)
+	// fmt.Println()
+	// fmt.Println("Time:")
+	// fmt.Println(total_time.Seconds())
+	// fmt.Println()
+	// fmt.Println("Communication Time:")
+	// fmt.Println(communication_seconds)
 }
 
 

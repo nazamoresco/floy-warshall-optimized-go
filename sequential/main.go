@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const MatrixSize = 8192
+const MatrixSize = 2048
 const Infinity = math.MaxInt64
 
 func main() {
